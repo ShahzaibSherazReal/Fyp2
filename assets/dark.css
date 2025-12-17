@@ -1,0 +1,56 @@
+/* --- GLOBAL DARK THEME --- */
+.stApp {
+    background-color: #0e1117; /* Deep Dark Background */
+    color: #fafafa; /* White Text */
+}
+
+/* --- CARD STYLE (Dark Mode for Apple/Corn/Potato) --- */
+div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"] {
+    background-color: #262730; /* Dark Grey Cards */
+    border: 1px solid #3b3e48; /* Subtle border */
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* Dark shadow */
+    transition: transform 0.2s;
+}
+div[data-testid="stVerticalBlock"] > div > div[data-testid="stVerticalBlock"]:hover {
+    transform: translateY(-5px);
+    border-color: #00ff41; /* Neon Green glow on hover */
+    box-shadow: 0 8px 12px rgba(0,255,65,0.1);
+}
+
+/* --- THE UPLOAD SECTION (Huge Dashed Box) --- */
+[data-testid='stFileUploader'] {
+    width: 100%;
+}
+
+/* Style the dropzone area */
+[data-testid='stFileUploader'] section {
+    padding: 6rem; /* <--- THIS MAKES IT HUGE (6rem = very tall) */
+    background-color: #15181e; /* Slightly lighter than bg */
+    border: 3px dashed #555; /* Visible dashed grey border */
+    border-radius: 20px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+/* Change look when hovering */
+[data-testid='stFileUploader'] section:hover {
+    border-color: #00ff41; /* Neon Green border on hover */
+    background-color: #1b1f26;
+    cursor: pointer;
+}
+
+/* Hide the default button to keep it clean */
+[data-testid='stFileUploader'] button {
+    display: none;
+}
+
+/* --- REPORT BOX (Dark Mode Results) --- */
+.report-box {
+    border: 1px solid #444;
+    padding: 25px;
+    border-radius: 12px;
+    background-color: #262730;
+    margin-top: 20px;
+}
