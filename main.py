@@ -22,8 +22,9 @@ def load_lottieurl(url: str):
     except:
         return None
 
-# Updated stable URL for the scanner animation
-lottie_scanner = load_lottieurl("https://lottie.host/5a919f07-8899-4c1c-84a1-0570b615d5f3/7x67d5f0b1.json")
+# --- NEW DOODLE ANIMATION ---
+# This is a hand-drawn style "Thinking/Analyzing" animation URL
+lottie_doodle = load_lottieurl("https://lottie.host/60630956-e216-4298-905d-2a3543500410/3t49238088.json")
 
 # --- THEME MANAGEMENT ---
 def load_css(file_name):
@@ -53,7 +54,7 @@ st.sidebar.markdown("---")
 
 # --- MODEL ACCURACY GRAPH ---
 st.sidebar.subheader("📊 Model Performance")
-st.sidebar.caption("Live Training Metrics (v2.4.1)")
+st.sidebar.caption("Live Training Metrics (v2.4.2)") # Bumped version number ;)
 
 chart_data = pd.DataFrame(
     np.array([0.65, 0.72, 0.78, 0.81, 0.85, 0.88, 0.91, 0.93, 0.94, 0.95, 0.955, 0.96]) 
@@ -148,19 +149,19 @@ elif st.session_state.page == 'upload':
         
         if st.button("Run Diagnostics"):
             with col2:
-                # --- ANIMATION BLOCK (SAFE VERSION) ---
+                # --- ANIMATION BLOCK (DOODLE VERSION) ---
                 animation_placeholder = st.empty()
                 
                 with animation_placeholder.container():
                     anim_col1, anim_col2 = st.columns([1, 3])
                     
                     with anim_col1:
-                        # CRITICAL FIX: Only play if loaded successfully
-                        if lottie_scanner:
-                            st_lottie(lottie_scanner, height=120, key="scanner_anim")
+                        # Check if doodle loaded, otherwise show spinner
+                        if lottie_doodle:
+                            # Increased height slightly for better doodle visibility
+                            st_lottie(lottie_doodle, height=150, key="doodle_anim")
                         else:
-                            # Fallback spinner if animation fails to load
-                            st.spinner("Processing...")
+                            st.spinner("Analyzing...")
                             
                     with anim_col2:
                         st.markdown(f"### Initializing {plant_type} Network...")
