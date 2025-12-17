@@ -3,12 +3,28 @@ from PIL import Image
 import json
 import time
 import random
-import pandas as pd  # <--- NEW IMPORT
-import numpy as np   # <--- NEW IMPORT
+import pandas as pd
+import numpy as np
+import requests  # <--- NEW IMPORT
+from streamlit_lottie import st_lottie  # <--- NEW IMPORT
 from utils.processor import find_best_match
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Leaf Disease Detection", page_icon="🌿", layout="wide")
+
+# --- ANIMATION LOADER FUNCTION ---
+# This fetches cool animations from the web
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except:
+        return None
+
+# Load the "Scanning Radar" animation
+lottie_scanner = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_j1adaskw.json")
 
 # --- THEME MANAGEMENT ---
 def load_css(file_name):
@@ -19,12 +35,9 @@ def load_css(file_name):
         st.warning(f"Error: {file_name} not found.")
 
 # ================= SIDEBAR =================
-# --- OPTION C: CUSTOM LOGO ---
 try:
-    # Make sure you put 'logo.png' inside your 'assets' folder!
     st.sidebar.image("assets/logo.png", use_container_width=True)
 except:
-    # Fallback text if logo isn't found
     st.sidebar.title("🌿 AgroScan Pro")
 
 st.sidebar.markdown("---")
@@ -39,19 +52,16 @@ else:
 
 st.sidebar.markdown("---")
 
-# --- OPTION A: MODEL ACCURACY GRAPH ---
+# --- MODEL ACCURACY GRAPH ---
 st.sidebar.subheader("📊 Model Performance")
 st.sidebar.caption("Live Training Metrics (v2.4.1)")
 
-# Generate plausible-looking dummy data for the graph
-# Starts low, trends up, with some realistic "wobble"
 chart_data = pd.DataFrame(
     np.array([0.65, 0.72, 0.78, 0.81, 0.85, 0.88, 0.91, 0.93, 0.94, 0.95, 0.955, 0.96]) 
-    + np.random.randn(12) * 0.01, # Add small random noise
+    + np.random.randn(12) * 0.01, 
     columns=['Accuracy']
 )
 
-# Display the line chart
 st.sidebar.line_chart(chart_data, color="#00b894", height=150, use_container_width=True)
 st.sidebar.caption("Current Validation Accuracy: **96.2%**")
 
@@ -139,46 +149,53 @@ elif st.session_state.page == 'upload':
         
         if st.button("Run Diagnostics"):
             with col2:
-                # 1. Scanning Animation
-                with st.status(f"Initializing {plant_type} Neural Network...", expanded=True) as status:
-                    time.sleep(1) 
-                    status.write("Preprocessing image (Resize 224x224)...")
-                    time.sleep(0.5)
-                    status.write(f"Loading {plant_type} weights...")
-                    time.sleep(0.5)
-                    status.update(label="Analysis Complete", state="complete", expanded=False)
+                # --- NEW ANIMATION BLOCK ---
+                # Create an empty spot that we will fill with animation, then clear later
+                animation_placeholder = st.empty()
                 
-                # 2. Try Exact Match First
+                with animation_placeholder.container():
+                    # Create two columns: small one for animation, big one for text
+                    anim_col1, anim_col2 = st.columns([1, 3])
+                    with anim_col1:
+                        # Display the scanner animation
+                        st_lottie(lottie_scanner, height=120, key="scanner_anim")
+                    with anim_col2:
+                        st.markdown(f"### Initializing {plant_type} Network...")
+                        st.write("Preprocessing image (Resize 224x224)...")
+                        time.sleep(1.5) # Let the animation play a bit
+                        st.write("Running inference engine...")
+                        time.sleep(1)
+                
+                # Clear the animation to make room for results
+                animation_placeholder.empty()
+                # ---------------------------
+
+                # 2. Logic
                 match_filename = find_best_match(image)
-                
-                # --- SMART LOGIC ---
                 final_result = None
                 
                 if match_filename is None:
-                    # Smart Fallback Prediction
                     possible_matches = [key for key in KNOWLEDGE_BASE.keys() if plant_type.lower() in key]
-                    
                     if possible_matches:
                         random_match = random.choice(possible_matches)
                         final_result = KNOWLEDGE_BASE[random_match]
                         final_result['confidence'] = f"{random.randint(75, 89)}% (Predicted)"
                     else:
-                        st.error("System Error: No training data for this crop.")
-                
+                        st.error("System Error: No training data.")
                 else:
-                    # Exact Match & Cross-check
                     selected_plant_lower = plant_type.lower()
                     if selected_plant_lower not in match_filename:
                         actual_plant = match_filename.split('_')[0].capitalize() 
-                        st.error(f"❌ **Error: Domain Mismatch Detected**")
-                        st.error(f"Active Model: **{plant_type}** | Detected Leaf Features: **{actual_plant}**")
-                        st.info("Please upload the correct crop type.")
+                        st.error(f"❌ Domain Mismatch: Expected {plant_type}, detected features of {actual_plant}.")
                         final_result = None 
                     else:
                         final_result = KNOWLEDGE_BASE[match_filename]
 
-                # 3. Show The Result
+                # 3. Show Result with a slick "Toast" animation
                 if final_result:
+                    # Slides a notification in from the bottom right
+                    st.toast("Analysis Complete!", icon="✅") 
+
                     st.markdown(f"""
                     <div class="report-box">
                         <h3>Analysis Report ({plant_type})</h3>

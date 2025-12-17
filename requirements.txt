@@ -4,3 +4,5 @@ numpy
 imagehash
 opencv-python-headless
 pandas
+streamlit-lottie
+requests
