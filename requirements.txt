@@ -3,3 +3,4 @@ Pillow
 numpy
 imagehash
 opencv-python-headless
+pandas
