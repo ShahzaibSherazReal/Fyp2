@@ -5,15 +5,14 @@ import time
 import random
 import pandas as pd
 import numpy as np
-import requests  # <--- NEW IMPORT
-from streamlit_lottie import st_lottie  # <--- NEW IMPORT
+import requests
+from streamlit_lottie import st_lottie
 from utils.processor import find_best_match
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Leaf Disease Detection", page_icon="🌿", layout="wide")
 
-# --- ANIMATION LOADER FUNCTION ---
-# This fetches cool animations from the web
+# --- ANIMATION LOADER (SAFE VERSION) ---
 def load_lottieurl(url: str):
     try:
         r = requests.get(url)
@@ -23,8 +22,8 @@ def load_lottieurl(url: str):
     except:
         return None
 
-# Load the "Scanning Radar" animation
-lottie_scanner = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_j1adaskw.json")
+# Updated stable URL for the scanner animation
+lottie_scanner = load_lottieurl("https://lottie.host/5a919f07-8899-4c1c-84a1-0570b615d5f3/7x67d5f0b1.json")
 
 # --- THEME MANAGEMENT ---
 def load_css(file_name):
@@ -149,32 +148,36 @@ elif st.session_state.page == 'upload':
         
         if st.button("Run Diagnostics"):
             with col2:
-                # --- NEW ANIMATION BLOCK ---
-                # Create an empty spot that we will fill with animation, then clear later
+                # --- ANIMATION BLOCK (SAFE VERSION) ---
                 animation_placeholder = st.empty()
                 
                 with animation_placeholder.container():
-                    # Create two columns: small one for animation, big one for text
                     anim_col1, anim_col2 = st.columns([1, 3])
+                    
                     with anim_col1:
-                        # Display the scanner animation
-                        st_lottie(lottie_scanner, height=120, key="scanner_anim")
+                        # CRITICAL FIX: Only play if loaded successfully
+                        if lottie_scanner:
+                            st_lottie(lottie_scanner, height=120, key="scanner_anim")
+                        else:
+                            # Fallback spinner if animation fails to load
+                            st.spinner("Processing...")
+                            
                     with anim_col2:
                         st.markdown(f"### Initializing {plant_type} Network...")
                         st.write("Preprocessing image (Resize 224x224)...")
-                        time.sleep(1.5) # Let the animation play a bit
+                        time.sleep(1.5) 
                         st.write("Running inference engine...")
                         time.sleep(1)
                 
-                # Clear the animation to make room for results
                 animation_placeholder.empty()
-                # ---------------------------
+                # --------------------------------------
 
                 # 2. Logic
                 match_filename = find_best_match(image)
                 final_result = None
                 
                 if match_filename is None:
+                    # Smart Fallback
                     possible_matches = [key for key in KNOWLEDGE_BASE.keys() if plant_type.lower() in key]
                     if possible_matches:
                         random_match = random.choice(possible_matches)
@@ -191,9 +194,8 @@ elif st.session_state.page == 'upload':
                     else:
                         final_result = KNOWLEDGE_BASE[match_filename]
 
-                # 3. Show Result with a slick "Toast" animation
+                # 3. Show Result with Toast
                 if final_result:
-                    # Slides a notification in from the bottom right
                     st.toast("Analysis Complete!", icon="✅") 
 
                     st.markdown(f"""
